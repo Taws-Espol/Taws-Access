@@ -1,0 +1,34 @@
+version: "3.9"
+
+# Esqueleto inicial de Docker Compose para SERGI.
+# Los servicios "backend", "frontend" y "facial-service" se completan
+# en sus respectivos issues de infraestructura (necesitan Dockerfile propio).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sergi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sergi}
+      POSTGRES_DB: ${POSTGRES_DB:-sergi}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # backend:
+  #   build: ./backend
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     DATABASE_URL: postgres://${POSTGRES_USER:-sergi}:${POSTGRES_PASSWORD:-sergi}@db:5432/${POSTGRES_DB:-sergi}
+  #   ports:
+  #     - "3000:3000"
+
+  # facial-service:
+  #   build: ./facial-service
+  #   ports:
+  #     - "8000:8000"
+
+volumes:
+  db_data:
