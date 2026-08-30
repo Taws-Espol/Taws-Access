@@ -8,6 +8,13 @@ export const pool = new Pool({
   connectionString: env.databaseUrl,
 });
 
+// Sin este listener, un error en un cliente inactivo del pool (p. ej. que
+// Postgres se reinicie) queda sin capturar y tumba todo el proceso de Node,
+// no solo el /health check.
+pool.on("error", (err) => {
+  console.error("Error inesperado en el pool de PostgreSQL:", err);
+});
+
 export async function checkDatabaseConnection(): Promise<boolean> {
   const client = await pool.connect();
   try {

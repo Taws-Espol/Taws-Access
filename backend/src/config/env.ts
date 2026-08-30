@@ -9,7 +9,7 @@ function requireEnv(name: string, fallback?: string): string {
 }
 
 export const env = {
-  port: Number(requireEnv("PORT", "3000")),
+  port: Number(requireEnv("PORT", "3000") || "3000"),
   databaseUrl: requireEnv("DATABASE_URL"),
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
 };
