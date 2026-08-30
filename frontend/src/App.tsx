@@ -1,14 +1,22 @@
-import { Button } from "@/components/ui/button";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AccessPage } from "@/pages/AccessPage";
+import { AuditPage } from "@/pages/AuditPage";
+import { CleaningPage } from "@/pages/CleaningPage";
+import { IncidentsPage } from "@/pages/IncidentsPage";
+import { LoginPage } from "@/pages/LoginPage";
 
 function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-semibold">SERGI</h1>
-      <p className="text-muted-foreground">
-        Sistema de Registro Biométrico y Gestión de Incidencias
-      </p>
-      <Button>Shadcn/ui configurado correctamente</Button>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/acceso" element={<AccessPage />} />
+        <Route path="/auditoria" element={<AuditPage />} />
+        <Route path="/incidencias" element={<IncidentsPage />} />
+        <Route path="/limpieza" element={<CleaningPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

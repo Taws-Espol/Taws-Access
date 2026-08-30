@@ -1,32 +1,73 @@
-# React + TypeScript + Vite
+# Frontend — SERGI
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Cliente web (React + Vite + TypeScript + Shadcn/ui) que consume la API REST
+del backend.
 
-Currently, two official plugins are available:
+## Estructura
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+frontend/
+├── src/
+│   ├── components/ui/  # Componentes de Shadcn/ui
+│   ├── pages/            # Vistas / rutas principales (login, acceso, auditoría, incidencias, limpieza)
+│   ├── services/          # Cliente HTTP hacia la API del backend
+│   ├── hooks/
+│   ├── types/
+│   └── lib/               # Utilidades (helper `cn` de Shadcn)
+├── index.html
+├── package.json
+└── vite.config.ts
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Setup local
+
+1. Copiar `.env.example` a `.env` y ajustar `VITE_API_URL` si el backend no
+   corre en `http://localhost:3000`.
+2. Instalar dependencias:
+   ```bash
+   npm install
+   ```
+3. Levantar el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+4. Abrir [http://localhost:5173](http://localhost:5173).
+
+## Scripts
+
+| Comando | Descripción |
+| --- | --- |
+| `npm run dev` | Levanta el servidor de desarrollo con recarga en caliente. |
+| `npm run build` | Type-checks y genera el build de producción en `dist/`. |
+| `npm run lint` | Corre `oxlint` sobre el proyecto. |
+| `npm run preview` | Sirve el build de `dist/` localmente para previsualizar. |
+
+## Rutas
+
+| Ruta | Página | Módulo relacionado |
+| --- | --- | --- |
+| `/login` | Login | Autenticación (#6) |
+| `/acceso` | Registro de acceso | Reconocimiento facial (#7) / Control de acceso (#8) |
+| `/auditoria` | Panel de auditoría | Auditoría (#12) |
+| `/incidencias` | Incidencias | Gestión de incidencias (#10) |
+| `/limpieza` | Limpieza | Registro de limpieza (#9) |
+
+Todas las páginas son placeholders por ahora; la pantalla real de cada una se
+implementa en su issue de módulo correspondiente.
+
+## Cliente HTTP
+
+`src/services/api.ts` expone un cliente mínimo (`api.get`, `api.post`) que
+apunta a `VITE_API_URL`. Los servicios de cada módulo deben construirse sobre
+esta base en vez de llamar a `fetch` directamente.
+
+## Añadir componentes de Shadcn/ui
+
+```bash
+npx shadcn@latest add <componente>
+```
+
+## Requisitos relacionados
+
+- RNF-USA-01, RNF-USA-02, RNF-USA-03 (usabilidad y responsive)
+- RF-AUD-01/02/03 (panel de auditoría)
