@@ -10,7 +10,7 @@ from .errors import EmbeddingGenerationError, InvalidImageError
 
 
 def decode_image(image_base64: str) -> np.ndarray:
-    """Decodifica una imagen en base64 (con o sin prefijo data URL) a un array RGB."""
+    """Decodifica una imagen en base64 (con o sin prefijo data URL) a un array BGR."""
     if image_base64.strip().startswith("data:") and "," in image_base64:
         image_base64 = image_base64.split(",", 1)[1]
 
@@ -20,7 +20,8 @@ def decode_image(image_base64: str) -> np.ndarray:
     except Exception as exc:
         raise InvalidImageError("No se pudo decodificar la imagen enviada.") from exc
 
-    return np.array(image)
+    # DeepFace espera BGR al recibir un array (asume cv2.imread por debajo).
+    return np.array(image)[:, :, ::-1]
 
 
 def generate_embedding(image_base64: str) -> list[float]:
