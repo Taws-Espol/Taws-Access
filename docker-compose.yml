@@ -1,34 +1,105 @@
-version: "3.9"
-
-# Esqueleto inicial de Docker Compose para SERGI.
-# Los servicios "backend", "frontend" y "facial-service" se completan
-# en sus respectivos issues de infraestructura (necesitan Dockerfile propio).
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    env_file:
+      - ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-sergi}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sergi}
       POSTGRES_DB: ${POSTGRES_DB:-sergi}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sergi} -d ${POSTGRES_DB:-sergi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - sergi-net
 
-  # backend:
-  #   build: ./backend
-  #   depends_on:
-  #     - db
-  #   environment:
-  #     DATABASE_URL: postgres://${POSTGRES_USER:-sergi}:${POSTGRES_PASSWORD:-sergi}@db:5432/${POSTGRES_DB:-sergi}
-  #   ports:
-  #     - "3000:3000"
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+      facial-service:
+        condition: service_healthy
+    environment:
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgres://${POSTGRES_USER:-sergi}:${POSTGRES_PASSWORD:-sergi}@db:5432/${POSTGRES_DB:-sergi}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      FACIAL_SERVICE_URL: ${FACIAL_SERVICE_URL:-http://facial-service:8000}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    networks:
+      - sergi-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-3000}/health >/dev/null 2>&1 || curl -fsS http://localhost:${PORT:-3000}/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
-  # facial-service:
-  #   build: ./facial-service
-  #   ports:
-  #     - "8000:8000"
+  facial-service:
+    build:
+      context: ./facial-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      PORT: ${FACIAL_SERVICE_PORT:-8000}
+      FACIAL_MATCH_THRESHOLD: ${FACIAL_MATCH_THRESHOLD:-0.6}
+    ports:
+      - "${FACIAL_SERVICE_PORT:-8000}:8000"
+    networks:
+      - sergi-net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${FACIAL_SERVICE_PORT:-8000}/health').read()\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  db-backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sergi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sergi}
+      POSTGRES_DB: ${POSTGRES_DB:-sergi}
+      PGHOST: db
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+      BACKUP_DIR: ${BACKUP_DIR:-/backups}
+    volumes:
+      - ./backups:/backups
+    command: >
+      /bin/sh -c "
+      mkdir -p ${BACKUP_DIR:-/backups} &&
+      echo '${BACKUP_SCHEDULE:-0 2 * * *} pg_dump -U $$POSTGRES_USER -d $$POSTGRES_DB -Fc > ${BACKUP_DIR:-/backups}/sergi-$$(date +%F).dump' > /etc/crontabs/root &&
+      crond -f -l 2
+      "
+    networks:
+      - sergi-net
+
+networks:
+  sergi-net:
+    driver: bridge
 
 volumes:
   db_data:
