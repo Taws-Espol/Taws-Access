@@ -33,8 +33,10 @@ class MatchRequest(BaseModel):
     )
     threshold: Optional[float] = Field(
         None,
+        ge=-1.0,
+        le=1.0,
         description=(
-            "Umbral de similitud coseno (0-1). Si se omite, se usa "
+            "Umbral de similitud coseno (-1 a 1). Si se omite, se usa "
             "FACIAL_MATCH_THRESHOLD."
         ),
     )
