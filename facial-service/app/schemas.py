@@ -7,6 +7,7 @@ class EmbeddingRequest(BaseModel):
     image_base64: str = Field(
         ...,
         min_length=1,
+        max_length=8_000_000,
         description=(
             "Imagen del rostro ya recortada por MediaPipe en el cliente, "
             "codificada en base64 (con o sin prefijo data URL)."
@@ -29,7 +30,9 @@ class MatchRequest(BaseModel):
         ..., min_length=1, description="Embedding a comparar contra los candidatos."
     )
     candidates: List[Candidate] = Field(
-        ..., description="Embeddings almacenados contra los que se compara."
+        ...,
+        max_length=1000,
+        description="Embeddings almacenados contra los que se compara.",
     )
     threshold: Optional[float] = Field(
         None,
