@@ -35,12 +35,14 @@ def generate_embedding(image_base64: str) -> list[float]:
     image = decode_image(image_base64)
 
     try:
-        # enforce_detection=False: la imagen ya llega recortada al rostro
-        # (MediaPipe la procesó en el cliente), no se vuelve a detectar aquí.
+        # detector_backend="skip": la imagen ya llega recortada al rostro
+        # (MediaPipe la procesó en el cliente); enforce_detection=False por
+        # sí solo no evita que se vuelva a detectar.
         result = DeepFace.represent(
             img_path=image,
             model_name=settings.model_name,
             enforce_detection=False,
+            detector_backend="skip",
         )
     except Exception as exc:
         raise EmbeddingGenerationError(
