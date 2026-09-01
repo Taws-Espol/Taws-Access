@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
 
+RUN useradd --create-home --shell /usr/sbin/nologin appuser
+USER appuser
+
 ENV PORT=8000
 EXPOSE 8000
 
