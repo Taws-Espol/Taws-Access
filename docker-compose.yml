@@ -91,7 +91,7 @@ services:
     command: >
       /bin/sh -c "
       mkdir -p ${BACKUP_DIR:-/backups} &&
-      echo '${BACKUP_SCHEDULE:-0 2 * * *} pg_dump -U $$POSTGRES_USER -d $$POSTGRES_DB -Fc > ${BACKUP_DIR:-/backups}/sergi-$$(date +%F).dump' > /etc/crontabs/root &&
+      echo '${BACKUP_SCHEDULE:-0 2 * * *} PGPASSWORD=${POSTGRES_PASSWORD:-sergi} pg_dump -h db -U ${POSTGRES_USER:-sergi} -d ${POSTGRES_DB:-sergi} -Fc > ${BACKUP_DIR:-/backups}/sergi-$$(date +%F).dump' > /etc/crontabs/root &&
       crond -f -l 2
       "
     networks:
