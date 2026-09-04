@@ -65,8 +65,16 @@ docker build -t sergi-facial-service .
 docker run --env-file .env -p 8000:8000 sergi-facial-service
 ```
 
-La integración de este servicio dentro de `docker-compose.yml` (raíz del
-repo) se hace en el issue de infraestructura de Docker Compose.
+Este servicio ya está integrado en el `docker-compose.yml` de la raíz del
+repo y puede levantarse junto con la base de datos y el backend con:
+
+```bash
+docker compose up --build
+```
+
+La configuración de red interna y variables de entorno del proyecto ya está
+preparada para que `backend/` se conecte a `facial-service/` por su nombre de
+servicio dentro de Docker.
 
 ## Endpoints
 
@@ -148,11 +156,11 @@ Response `200` (sin coincidencia por debajo del umbral):
 
 ## Variables de entorno
 
-| Variable | Descripción | Default |
-| --- | --- | --- |
-| `PORT` | Puerto del servidor | `8000` |
-| `FACIAL_MODEL_NAME` | Modelo de DeepFace usado para generar embeddings | `Facenet512` |
-| `FACIAL_MATCH_THRESHOLD` | Umbral de similitud coseno por defecto para `/match` | `0.6` |
+| Variable                 | Descripción                                          | Default      |
+| ------------------------ | ---------------------------------------------------- | ------------ |
+| `PORT`                   | Puerto del servidor                                  | `8000`       |
+| `FACIAL_MODEL_NAME`      | Modelo de DeepFace usado para generar embeddings     | `Facenet512` |
+| `FACIAL_MATCH_THRESHOLD` | Umbral de similitud coseno por defecto para `/match` | `0.6`        |
 
 ## Requisitos relacionados
 

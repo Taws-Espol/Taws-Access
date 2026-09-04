@@ -26,3 +26,7 @@ Thumbs.db
 
 # Docker
 *.pid
+
+# Local database backups (not committed to source control)
+backups/
+*.dump
