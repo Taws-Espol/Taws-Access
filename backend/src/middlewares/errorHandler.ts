@@ -7,5 +7,6 @@ export function errorHandler(
   _next: NextFunction,
 ): void {
   console.error(err);
-  res.status(500).json({ status: "error", message: "Error interno del servidor" });
+  // Misma forma `{ error }` que el resto de la API para un contrato uniforme.
+  res.status(500).json({ error: "Error interno del servidor" });
 }

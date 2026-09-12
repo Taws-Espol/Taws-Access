@@ -17,19 +17,21 @@ export async function getConfig(
   return rows[0] ?? null;
 }
 
-// Upsert de un valor de configuración (RF-ACC-05: N editable por el admin).
+// Actualiza el valor de una clave EXISTENTE (RF-ACC-05: N editable por el
+// admin). Es un UPDATE, no un upsert: las claves se crean por seed/migración,
+// nunca desde la API. Devuelve `null` si la clave no existe (el UPDATE no toca
+// filas), lo que permite responder 404 sin un SELECT previo (evita TOCTOU).
 export async function setConfig(
   clave: string,
   valor: string,
   executor: Executor = pool,
-): Promise<Configuracion> {
+): Promise<Configuracion | null> {
   const { rows } = await executor.query<Configuracion>(
-    `INSERT INTO configuracion (clave, valor)
-     VALUES ($1, $2)
-     ON CONFLICT (clave)
-       DO UPDATE SET valor = EXCLUDED.valor, updated_at = now()
-     RETURNING clave, valor, descripcion, tipo_dato`,
+    `UPDATE configuracion
+        SET valor = $2, updated_at = now()
+      WHERE clave = $1
+      RETURNING clave, valor, descripcion, tipo_dato`,
     [clave, valor],
   );
-  return rows[0];
+  return rows[0] ?? null;
 }
