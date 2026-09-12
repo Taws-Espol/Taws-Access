@@ -1,9 +1,9 @@
 import { Pool, PoolClient } from "pg";
 import { env } from "./env";
 
-// Conexión mínima con `pg`. La herramienta de migraciones/ORM definitiva se
-// decide en la issue #5 (diseño del esquema de base de datos) — este pool
-// solo cubre la verificación de conectividad para el setup inicial.
+// Pool de conexiones con `pg`. El esquema y las migraciones se gestionan con
+// node-pg-migrate (issue #5, ya resuelta); se usa `pg` crudo (sin ORM) desde
+// los repositorios, en línea con la arquitectura por capas (RNF-MAN-01).
 export const pool = new Pool({
   connectionString: env.databaseUrl,
 });

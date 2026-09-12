@@ -110,12 +110,12 @@ El seed (`0007_seed.js`) crea los 4 roles base (`Miembro`, `Directivo`,
 
 | Método y ruta | Descripción |
 | --- | --- |
-| `POST /api/acceso/eventos` | Registra un ingreso/salida (RF-ACC-01/02/03). |
+| `POST /api/acceso/eventos` | Registra un ingreso/salida (RF-ACC-01/02/03). Responde `409` si el evento no cambia la presencia (p. ej. una salida duplicada de quien ya está fuera), evitando cierres espurios. |
 | `GET /api/acceso/presencia` | Miembros actualmente dentro del local (RF-ACC-04). |
 | `GET /api/acceso/cierre/ultimo` | Último cierre y su responsable (handoff a RF-INC-02). |
-| `POST /api/acceso/permanencia/verificar` | Genera alertas por permanencia excesiva (RF-ACC-05). |
+| `POST /api/acceso/permanencia/verificar` | Genera alertas por permanencia excesiva (RF-ACC-05). Idempotente por estadía: solo notifica a los miembros aún no alertados, así invocarlo periódicamente (cron/polling) no reenvía la misma alerta. |
 | `GET /api/configuracion/:clave` | Lee un valor de configuración. |
-| `PUT /api/configuracion/:clave` | Actualiza un valor de configuración. |
+| `PUT /api/configuracion/:clave` | Actualiza el valor de una clave **existente** (las claves se crean por seed/migración). Responde `404` si la clave no existe y `400` si el valor no respeta el `tipo_dato` (p. ej. `integer` no negativo). |
 
 > Los endpoints aún no están protegidos por auth/roles; eso se añade en el
 > módulo de autenticación (issue #6).
