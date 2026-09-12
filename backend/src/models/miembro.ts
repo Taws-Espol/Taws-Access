@@ -10,6 +10,9 @@ export interface Miembro {
   estado: EstadoMiembro;
   presencia_actual: EstadoPresencia;
   ultimo_evento_at: string | null;
+  // Marca de la última alerta de permanencia excedida (RF-ACC-05); se reinicia
+  // en cada nuevo evento de acceso para deduplicar notificaciones por estadía.
+  alerta_permanencia_at: string | null;
   fecha_registro: string;
 }
 

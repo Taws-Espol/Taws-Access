@@ -25,7 +25,9 @@ export async function getPresencia(
 }
 
 // Actualiza el cache de presencia y la marca de tiempo del último evento
-// (RF-ACC-02). Se llama dentro de la misma transacción del evento.
+// (RF-ACC-02). Se llama dentro de la misma transacción del evento. Reinicia
+// `alerta_permanencia_at` porque cada evento inicia una nueva estadía: así una
+// alerta previa de RF-ACC-05 no bloquea la de la próxima permanencia excedida.
 export async function setPresencia(
   miembroId: number,
   presencia: EstadoPresencia,
@@ -34,7 +36,10 @@ export async function setPresencia(
 ): Promise<void> {
   await executor.query(
     `UPDATE miembro
-       SET presencia_actual = $2, ultimo_evento_at = $3, updated_at = now()
+       SET presencia_actual = $2,
+           ultimo_evento_at = $3,
+           alerta_permanencia_at = NULL,
+           updated_at = now()
      WHERE id = $1`,
     [miembroId, presencia, ultimoEventoAt],
   );
@@ -53,19 +58,26 @@ export async function getMiembrosDentro(
   return rows;
 }
 
-// Miembros que llevan dentro más tiempo del umbral (RF-ACC-05): su último
-// evento fue antes de `limite`.
-export async function getMiembrosDentroDesdeAntesDe(
+// Reclama (de forma atómica) los miembros con permanencia excedida que aún NO
+// han sido alertados en su estadía actual (RF-ACC-05): último evento antes de
+// `limite` y `alerta_permanencia_at` nula. El `UPDATE ... RETURNING` marca y
+// devuelve en una sola sentencia, de modo que llamadas concurrentes (cron o
+// polling) no generan notificaciones duplicadas: bajo READ COMMITTED, Postgres
+// re-evalúa el `WHERE` tras tomar el lock de fila, así cada estadía se reclama
+// una única vez. `alerta_permanencia_at` se reinicia en el siguiente evento
+// (ver `setPresencia`), habilitando una nueva alerta en la próxima estadía.
+export async function reclamarMiembrosParaAlertaPermanencia(
   limite: string,
   executor: Executor = pool,
 ): Promise<MiembroPresente[]> {
   const { rows } = await executor.query<MiembroPresente>(
-    `SELECT id, nombre, apellido, ultimo_evento_at
-       FROM miembro
+    `UPDATE miembro
+        SET alerta_permanencia_at = now(), updated_at = now()
       WHERE presencia_actual = 'dentro'
         AND ultimo_evento_at IS NOT NULL
         AND ultimo_evento_at < $1
-      ORDER BY ultimo_evento_at ASC`,
+        AND alerta_permanencia_at IS NULL
+      RETURNING id, nombre, apellido, ultimo_evento_at`,
     [limite],
   );
   return rows;

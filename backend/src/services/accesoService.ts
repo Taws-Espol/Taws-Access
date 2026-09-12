@@ -108,25 +108,37 @@ export interface ResultadoPermanencia {
   alertados: MiembroPresente[];
 }
 
-// RF-ACC-05: detecta miembros dentro por más de N horas y genera una
-// notificación a cada directivo por cada miembro excedido.
+// RF-ACC-05: detecta miembros dentro por más de N horas y notifica a cada
+// directivo. Reclama a los excedidos de forma atómica y solo notifica por los
+// que aún no habían sido alertados en su estadía actual, de modo que invocar el
+// endpoint repetidamente (cron/polling) no reenvía la misma alerta. `alertados`
+// contiene únicamente a los miembros notificados en esta ejecución.
 export async function verificarPermanenciaExcedida(): Promise<ResultadoPermanencia> {
   const horasMax = await getHorasMax();
   const limite = new Date(Date.now() - horasMax * 3600_000).toISOString();
-  const excedidos = await miembroRepo.getMiembrosDentroDesdeAntesDe(limite);
 
-  if (excedidos.length > 0) {
-    const directivos = await notiRepo.getDirectivoIds();
-    for (const miembro of excedidos) {
-      for (const directivoId of directivos) {
-        await notiRepo.insertNotificacion({
-          destinatario_id: directivoId,
-          tipo: "acceso",
-          mensaje: `El miembro ${miembro.nombre} ${miembro.apellido} lleva más de ${horasMax} h dentro del local sin registrar salida.`,
-        });
+  return withTransaction(async (client) => {
+    const alertados = await miembroRepo.reclamarMiembrosParaAlertaPermanencia(
+      limite,
+      client,
+    );
+
+    if (alertados.length > 0) {
+      const directivos = await notiRepo.getDirectivoIds(client);
+      for (const miembro of alertados) {
+        for (const directivoId of directivos) {
+          await notiRepo.insertNotificacion(
+            {
+              destinatario_id: directivoId,
+              tipo: "acceso",
+              mensaje: `El miembro ${miembro.nombre} ${miembro.apellido} lleva más de ${horasMax} h dentro del local sin registrar salida.`,
+            },
+            client,
+          );
+        }
       }
     }
-  }
 
-  return { horasMax, alertados: excedidos };
+    return { horasMax, alertados };
+  });
 }
