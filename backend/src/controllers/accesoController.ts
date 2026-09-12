@@ -37,6 +37,10 @@ export async function postEvento(req: Request, res: Response): Promise<void> {
       res.status(404).json({ error: err.message });
       return;
     }
+    if (err instanceof accesoService.EventoInconsistenteError) {
+      res.status(409).json({ error: err.message });
+      return;
+    }
     console.error("Error registrando evento de acceso:", err);
     res.status(500).json({ error: "Error registrando el evento de acceso." });
   }

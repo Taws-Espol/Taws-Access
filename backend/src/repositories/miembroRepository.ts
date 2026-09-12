@@ -10,16 +10,18 @@ export function presenciaDesdeEvento(tipo: TipoEventoAcceso): EstadoPresencia {
   return tipo === "ingreso" ? "dentro" : "fuera";
 }
 
-// Verifica que el miembro exista (para validar el evento antes de registrarlo).
-export async function existeMiembro(
+// Presencia actual del miembro, o `null` si no existe. Sirve para validar en un
+// solo query tanto la existencia como el estado previo antes de aceptar un
+// evento de acceso (evita salidas/ingresos fuera de orden; ver RF-ACC-03).
+export async function getPresencia(
   miembroId: number,
   executor: Executor = pool,
-): Promise<boolean> {
-  const { rows } = await executor.query(
-    `SELECT 1 FROM miembro WHERE id = $1`,
+): Promise<EstadoPresencia | null> {
+  const { rows } = await executor.query<{ presencia_actual: EstadoPresencia }>(
+    `SELECT presencia_actual FROM miembro WHERE id = $1`,
     [miembroId],
   );
-  return rows.length > 0;
+  return rows.length > 0 ? rows[0].presencia_actual : null;
 }
 
 // Actualiza el cache de presencia y la marca de tiempo del último evento

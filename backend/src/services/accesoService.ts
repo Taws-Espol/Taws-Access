@@ -18,6 +18,12 @@ const HORAS_MAX_DEFAULT = 8;
 
 export class MiembroNoEncontradoError extends Error {}
 
+// El evento no cambia la presencia del miembro (p. ej. una "salida" cuando ya
+// figura "fuera" por un doble tap, un reintento de red o un registro offline
+// reenviado). Se rechaza antes de insertarlo para no ensuciar la bitácora ni
+// generar un cierre de local espurio (RF-ACC-03).
+export class EventoInconsistenteError extends Error {}
+
 export interface ResultadoEvento {
   evento: EventoAcceso;
   cierreGenerado: boolean;
@@ -32,14 +38,28 @@ export async function registrarEvento(
     // Serializa la decisión de "último en salir" frente a otras salidas.
     await client.query("SELECT pg_advisory_xact_lock($1)", [LOCK_LOCAL]);
 
-    if (!(await miembroRepo.existeMiembro(data.miembro_id, client))) {
+    const presenciaPrevia = await miembroRepo.getPresencia(
+      data.miembro_id,
+      client,
+    );
+    if (presenciaPrevia === null) {
       throw new MiembroNoEncontradoError(
         `No existe el miembro con id ${data.miembro_id}.`,
       );
     }
 
+    // Rechaza eventos fuera de orden/duplicados: si la presencia no cambia, el
+    // evento es espurio y no debe insertarse ni disparar un cierre.
+    const presencia = miembroRepo.presenciaDesdeEvento(data.tipo);
+    if (presencia === presenciaPrevia) {
+      throw new EventoInconsistenteError(
+        data.tipo === "salida"
+          ? `El miembro ${data.miembro_id} ya figura fuera del local; se ignora la salida duplicada.`
+          : `El miembro ${data.miembro_id} ya figura dentro del local; se ignora el ingreso duplicado.`,
+      );
+    }
+
     const evento = await eventoRepo.insertEvento(data, client);
-    const presencia = miembroRepo.presenciaDesdeEvento(evento.tipo);
     await miembroRepo.setPresencia(
       evento.miembro_id,
       presencia,
