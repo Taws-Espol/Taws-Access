@@ -12,4 +12,7 @@ export const env = {
   port: Number(requireEnv("PORT", "3000") || "3000"),
   databaseUrl: requireEnv("DATABASE_URL"),
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
+  // Clave de cifrado (32 bytes en hex o base64) para los embeddings faciales
+  // (RF-BIO-07 / RNF-SEG-04). Requerida al arrancar el backend.
+  embeddingEncKey: requireEnv("EMBEDDING_ENC_KEY"),
 };

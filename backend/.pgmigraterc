@@ -1,0 +1,7 @@
+{
+  "dir": "migrations",
+  "migrationsTable": "pgmigrations",
+  "databaseUrl": { "ENV": "DATABASE_URL" },
+  "migrationFileLanguage": "js",
+  "envPath": ".env"
+}

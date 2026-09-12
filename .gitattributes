@@ -1,0 +1,17 @@
+# Normaliza los finales de línea a LF en el repositorio.
+# Evita los avisos "LF will be replaced by CRLF" en Windows.
+* text=auto eol=lf
+
+# Archivos específicos de Windows que sí deben usar CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binarios: nunca normalizar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.dump binary
