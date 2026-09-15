@@ -13,6 +13,11 @@ export type TipoIncidencia =
   | "acceso_no_autorizado";
 export type EstadoMulta = "pendiente" | "pagada" | "anulada" | "vencida";
 export type CanalNotificacion = "whatsapp" | "email" | "sistema";
+export type EstadoNotificacion =
+  | "pendiente"
+  | "enviado"
+  | "entregado"
+  | "fallido";
 export type TipoNotificacion =
   | "incidencia"
   | "multa"
