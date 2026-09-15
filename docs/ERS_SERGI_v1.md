@@ -612,23 +612,62 @@ caciones (1:N).
 ## C Plantillas de Noti
 cación WhatsApp
 
-Las plantillas de mensajes para cada tipo de noti
-cación se de
-nirán durante la Fase 1 de desarrollo y se documentarán en esta sección. Los tipos de noti
-cación previstos son:
+Las plantillas se gestionan y aprueban en Meta WhatsApp Business. El sistema
+debe enviar el nombre exacto de la plantilla, su idioma y los parámetros del
+cuerpo en el orden indicado.
 
--  Noti
-cación de nueva incidencia al directivo.
+| Noti
+cación | Plantilla en Meta | Idioma | Parámetros, en orden |
+| --- | --- | --- | --- |
+| Nueva incidencia al directivo | `nueva_incidencia` | `es` | ID de incidencia, local, tipo, descripción |
+| Asignación de responsabilidad al miembro | `asignacion_incidencia` | `es` | nombre, ID de incidencia, descripción |
+| Multa aplicada al miembro | `multa_aplicada` | `en` | monto, motivo, plazo de pago, ID de incidencia |
+| Tarea de limpieza asignada | `tarea_limpieza` | `es` | nombre, fecha, tarea, lugar |
 
--  Noti
-cación de asignación de responsabilidad al miembro.
+**`nueva_incidencia`**
 
--  Noti
-cación de multa aplicada al miembro (monto, motivo, plazo de pago).
+```text
+Se ha registrado una nueva incidencia #{{1}} en {{2}}.
 
--  Noti
-cación de con
-rmación de apelación recibida.
+Tipo: {{3}}
 
--  Noti
-cación de resolución de apelación.
+Descripción: {{4}}
+
+Revisa el sistema para consultar los detalles y realizar el seguimiento correspondiente.
+```
+
+**`asignacion_incidencia`**
+
+```text
+Hola {{1}}, se te ha asignado la responsabilidad de la incidencia #{{2}}.
+
+Descripción registrada: {{3}}.
+
+Revisa el sistema para consultar los detalles y completar el seguimiento correspondiente.
+```
+
+**`multa_aplicada`**
+
+```text
+Se ha aplicado una multa de ${{1}} por el siguiente motivo: {{2}}.
+
+El plazo de pago indicado es {{3}} y la multa está relacionada con la incidencia #{{4}}.
+
+Revisa el sistema para consultar los detalles.
+```
+
+**`tarea_limpieza`**
+
+```text
+Hola {{1}}, tienes asignada una tarea de limpieza para el día {{2}}.
+
+Actividad: {{3}}.
+Lugar asignado: {{4}}.
+
+Revisa el sistema para consultar los detalles de la jornada.
+```
+
+La plantilla `tarea_limpieza` debe enviarse a cada uno de los cinco miembros
+seleccionados. Las plantillas futuras son `confirmacion_apelacion`, con el ID
+de multa como parámetro, y `resolucion_apelacion`, con ID de multa, resultado y
+motivo como parámetros.

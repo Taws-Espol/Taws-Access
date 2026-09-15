@@ -6,6 +6,7 @@ import { getHealth } from "./controllers/healthController";
 import { errorHandler } from "./middlewares/errorHandler";
 import accesoRoutes from "./routes/accesoRoutes";
 import configuracionRoutes from "./routes/configuracionRoutes";
+import notificacionRoutes from "./routes/notificacionRoutes";
 
 export function createApp(): Express {
   const app = express();
@@ -19,6 +20,7 @@ export function createApp(): Express {
   // fallback no las intercepte.
   app.use("/api/acceso", accesoRoutes);
   app.use("/api/configuracion", configuracionRoutes);
+  app.use("/api/notificaciones", notificacionRoutes);
 
   // 2-step build (ERS 7.2): en producción, Express sirve el build estático
   // del frontend (frontend/dist) para no requerir un servidor aparte.

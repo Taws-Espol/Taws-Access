@@ -4,7 +4,14 @@
 
 exports.up = (pgm) => {
   // Campo de auditoría `status` común a todas las tablas.
-  pgm.createType("estado_general", ["activo", "inactivo"]);
+  pgm.createType("estado_general", [
+    "activo",
+    "inactivo",
+    "pendiente",
+    "enviado",
+    "entregado",
+    "fallido",
+  ]);
   // Estado funcional del miembro (distinto del `status` de auditoría).
   pgm.createType("estado_miembro", ["activo", "inactivo", "suspendido"]);
   // Presencia en tiempo real dentro del local (RF-ACC-02).
